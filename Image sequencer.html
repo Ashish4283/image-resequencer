@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+  .image-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+  }
+  .image-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  #linkList {
+    list-style-type: none;
+    padding: 0;
+  }
+
+  /* Magnifier styles */
+  .magnifier {
+    position: absolute;
+    border: 1px solid #ccc;
+    border-radius: 50%;
+    width: 100px;
+    height: 100px;
+    pointer-events: none;
+    display: none;
+    background-color: rgba(255, 255, 255, 0.8);
+    overflow: hidden;
+  }
+
+  .magnifier img {
+    width: 200%; /* Adjust this value for the desired magnification level */
+    height: 200%; /* Adjust this value for the desired magnification level */
+    position: absolute;
+    top: -50%; /* Center the magnified image */
+    left: -50%; /* Center the magnified image */
+  }
+
+  /* Modal styles */
+  #imageModal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    justify-content: center;
+    align-items: center;
+  }
+
+  #modalImage {
+    max-width: 80%;
+    max-height: 80%;
+  }
+</style>
+</head>
+<body>
+
+<h1>Image Resequencer</h1>
+
+<label for="links">Enter Image Links (separated by commas or new lines):</label>
+<textarea id="links" rows="4" cols="50"></textarea>
+
+<button onclick="showImages()">Show Images</button>
+
+<div id="imageContainer" class="image-container"></div>
+
+<h2>Adjust Image Sequence</h2>
+<p>Enter the new sequence number for each image:</p>
+<div id="sequenceInputs"></div>
+<button onclick="resequenceImages()">Apply New Sequence</button>
+
+<h2>Image Link List</h2>
+<ul id="linkList"></ul>
+
+<!-- Modal for Zoomed Image -->
+<div id="imageModal">
+  <button id="closeModalButton" onclick="closeModal()">Close</button>
+  <img id="modalImage" src="" alt="Zoomed Image">
+  <button id="rotateImageButton" onclick="rotateImage()">Rotate</button>
+</div>
+
+<script>
+function showImages() {
+  const linksInput = document.getElementById('links');
+  const imageContainer = document.getElementById('imageContainer');
+  imageContainer.innerHTML = '';
+
+  const links = linksInput.value.split(/[\s,]+/).map(link => link.trim());
+
+  links.forEach((link, index) => {
+    if (link !== '') {
+      const imageBox = document.createElement('div');
+      imageBox.className = 'image-box';
+
+      const img = document.createElement('img');
+      img.src = link;
+      img.alt = `Image ${index + 1}`;
+      img.style.maxWidth = '200px';
+      img.style.maxHeight = '200px';
+
+      const sequenceInput = document.createElement('input');
+      sequenceInput.type = 'number';
+      sequenceInput.min = '1';
+      sequenceInput.value = index + 1;
+
+      imageBox.appendChild(img);
+      imageBox.appendChild(sequenceInput);
+      imageContainer.appendChild(imageBox);
+
+      img.addEventListener('click', () => openModal(img.src));
+    }
+  });
+}
+
+function openModal(imageSrc) {
+  const modal = document.getElementById('imageModal');
+  const modalImage = document.getElementById('modalImage');
+  modalImage.src = imageSrc;
+  modal.style.display = 'flex';
+}
+
+function resequenceImages() {
+  const imageBoxes = Array.from(document.querySelectorAll('.image-box'));
+  const linkList = document.getElementById('linkList');
+  linkList.innerHTML = '';
+
+  const sortedImageBoxes = imageBoxes.sort((a, b) => {
+    const aSequenceInput = a.querySelector('input[type="number"]');
+    const bSequenceInput = b.querySelector('input[type="number"]');
+    const aSequenceNumber = parseInt(aSequenceInput.value, 10);
+    const bSequenceNumber = parseInt(bSequenceInput.value, 10);
+    return aSequenceNumber - bSequenceNumber;
+  });
+
+  sortedImageBoxes.forEach((imageBox, index) => {
+    const imgSrc = imageBox.querySelector('img').src;
+    const listItem = document.createElement('li');
+    listItem.textContent = imgSrc;
+    linkList.appendChild(listItem);
+  });
+}
+
+function closeModal() {
+  const modal = document.getElementById('imageModal');
+  modal.style.display = 'none';
+}
+
+let rotationAngle = 0;
+
+function rotateImage() {
+  rotationAngle += 90;
+  const modalImage = document.getElementById('modalImage');
+  modalImage.style.transform = `rotate(${rotationAngle}deg)`;
+}
+</script>
+
+</body>
+</html>
